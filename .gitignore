@@ -45,3 +45,7 @@ next-env.d.ts
 *.mdb
 *.pdf
 *.zip
+
+# scripts/preprocess.py 지오코딩 캐시
+scripts/.cache/
+__pycache__/

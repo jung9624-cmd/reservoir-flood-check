@@ -1,5 +1,5 @@
 // 환산계수, Gumbel(PWM), 확률강우량. 근거: CLAUDE.md 5.1, docs/calc-rules.md 2절
-import type { AnnualMaxSeries } from "./types";
+import type { AnnualMaxTable } from "./types";
 import { notImplemented } from "./not-implemented";
 
 /** 고정시간 → 임의시간 환산계수 (X = 지속기간, 시간) */
@@ -26,7 +26,7 @@ export function gumbelQuantile(fit: GumbelFit, returnPeriod_yr: number): number 
 }
 
 /** 지속기간별 확률강우량 (mm) */
-export function probableRainfall(series: AnnualMaxSeries, returnPeriod_yr: number): number[] {
-  void series; void returnPeriod_yr;
+export function probableRainfall(table: AnnualMaxTable, durationsHr: number[], returnPeriod_yr: number): number[] {
+  void table; void durationsHr; void returnPeriod_yr;
   return notImplemented("probableRainfall");
 }

@@ -6,61 +6,110 @@ export type ValueSource =
   | { kind: "auto"; source: string }
   | { kind: "input" };
 
-/** 저수지 제원 (공공데이터포털 15044339) — 값은 이 자료를 따른다 */
+/** 제원 플래그 (값은 고치지 않고 표시만, scripts/preprocess.py A) */
+export type SpecFlag =
+  | "floodLevelNotAboveFull" // 홍수위 ≤ 만수위
+  | "fullLevelNotAboveDead" // 만수위 ≤ 사수위
+  | "zeroLevel"
+  | "negativeDeadLevel"
+  | "zeroCatchment"
+  | "zeroFullArea"
+  | "zeroFloodArea"
+  | "effectiveExceedsTotal"
+  | "storageSumMismatch" // 총 ≠ 유효 + 사수 (1 % 초과)
+  | "zeroDamHeight"
+  | "zeroDamLength"
+  | "zeroFloodFreq"
+  | "missingGrade";
+
+/** 저수지 제원 (공공데이터포털 15044339) — data/reservoirs.json의 reservoirs[] */
 export interface ReservoirSpec {
   code: string; // 표준코드 10자리 (문자열로 다룬다)
-  hq: string; // 본부
-  branch: string; // 지사
+  hq: string | null; // 본부
+  branch: string | null; // 지사
   name: string; // 시설명 (중복 있음, 키로 쓰지 않음)
-  address: string; // 소재지 (리·동까지)
-  startDate: string; // 착공년도
-  completeDate: string; // 준공년도
+  address: string | null; // 소재지 (리·동까지)
+  startDate: string | null; // 착공년도
+  completeDate: string | null; // 준공년도
   grade: string | null; // 종별
-  category: string; // 구분
-  catchment_ha: number; // 유역면적
-  floodArea_ha: number; // 홍수면적
-  fullArea_ha: number; // 만수면적
-  benefitArea_ha: number; // 수혜면적
-  droughtFreq_yr: number; // 한발빈도
-  floodFreq_yr: number; // 홍수빈도
-  damType: string; // 제체형식
-  damLength_m: number; // 제체길이
-  damHeight_m: number; // 제체높이
-  totalStorage_thm3: number; // 총저수량 (천m³)
-  effectiveStorage_thm3: number; // 유효저수량 (천m³)
-  deadStorage_thm3: number; // 사수량 (천m³)
+  category: string | null; // 구분
+  catchmentHa: number | null; // 유역면적
+  floodAreaHa: number | null; // 홍수면적
+  fullAreaHa: number | null; // 만수면적
+  benefitAreaHa: number | null; // 수혜면적
+  droughtFreqYr: number | null; // 한발빈도
+  floodFreqYr: number | null; // 홍수빈도
+  damType: string | null; // 제체형식
+  damLengthM: number | null; // 제체길이
+  damHeightM: number | null; // 제체높이
+  totalStorageThousandM3: number | null; // 총저수량 (천m³)
+  effectiveStorageThousandM3: number | null; // 유효저수량 (천m³)
+  deadStorageThousandM3: number | null; // 사수량 (천m³)
   intakeType: string | null; // 취수형식
-  floodLevel_el: number; // 홍수위
-  fullLevel_el: number; // 만수위
-  deadLevel_el: number; // 사수위
+  floodLevelElM: number | null; // 홍수위
+  fullLevelElM: number | null; // 만수위
+  deadLevelElM: number | null; // 사수위
+  contact: string | null; // 연락처
+  flags: SpecFlag[];
 }
 
-/** 저수지 위치. 공유플랫폼 좌표가 없으면 리·동 중심(위치 근사) */
-export interface ReservoirCoord {
+/** data/reservoirs.json */
+export interface ReservoirsFile {
+  source: string;
+  asOf: string; // 제원 기준일 (화면 표시, CLAUDE.md 3.1)
+  count: number;
+  flagCounts: Partial<Record<SpecFlag, number>>;
+  reservoirs: ReservoirSpec[];
+}
+
+/** 저수지 위치 — data/coords.json의 coords[] */
+export type ReservoirCoord =
+  | { code: string; lat: number; lon: number; source: "safetydata"; decimals: number; precisionM: number }
+  | { code: string; lat: number; lon: number; source: "approx"; approxLevel: string; approxQuery: string } // 위치 근사
+  | { code: string; lat: null; lon: null; source: "none" };
+
+/** 2025 홍수기 저수율 — data/storage-2025.json의 items[] */
+export interface StorageRate2025 {
   code: string;
-  lat: number;
-  lon: number;
-  approximate: boolean; // true = 위치 근사
-  decimals: number | null; // 좌표 소수자리
+  floodSeasonMeanPct: number | null;
+  floodSeasonMaxPct: number | null;
+  matchedBy: "name+address" | "name+last2" | "name+effective";
 }
 
-/** ASOS 관측소 */
+/** ASOS 관측소 — data/stations.json의 stations[] */
 export interface Station {
   code: string; // 3자리 문자열 (예: "138")
   name: string;
   lat: number;
   lon: number;
-  firstYear: number;
-  lastYear: number;
+  firstYear: number | null;
+  lastYear: number | null;
+  nYears: number;
 }
 
-/** 지속기간별 고정시간 연최대 강우량 (mm) */
-export interface AnnualMaxSeries {
-  station: string;
-  durations_hr: number[]; // 1, 2, 3, 4, 6, 9, 12, 15, 18, 24
+/** 한 시각 배치의 고정시간 연최대 */
+export interface AnnualMaxTable {
   years: number[];
-  values_mm: number[][]; // [해][지속기간]
-  timeConvention: "actual" | "khas"; // 실제 시각(기본) / K-HAS 방식(검증용)
+  valuesMm: number[][]; // [해][지속기간]
+  blankHours: number[];
+  dataHours: number[];
+}
+
+/** data/rainfall/annual-max/<관측소>.json */
+export interface AnnualMaxFile {
+  station: string;
+  durationsHr: number[]; // 1, 2, 3, 4, 6, 9, 12, 15, 18, 24
+  actual: AnnualMaxTable; // 실제 시각 (기본)
+  khas: AnnualMaxTable; // K-HAS 방식 (검증용)
+}
+
+/** data/huff/khas-q3.json */
+export interface HuffFile {
+  source: string;
+  timePct: number[]; // 0~100
+  incrementPct: number[];
+  cumulativePct: number[];
+  sumPct: number;
 }
 
 /** 추가 방류시설 (선택) */
