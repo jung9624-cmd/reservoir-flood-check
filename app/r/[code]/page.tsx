@@ -1,33 +1,34 @@
 import { Suspense } from "react";
-import { SpecPanel } from "@/components/spec-panel";
-import { InputForm } from "@/components/input-form";
-import { VerdictPanel } from "@/components/verdict-panel";
-import { DamSection } from "@/components/dam-section";
-import { FloodChart } from "@/components/flood-chart";
-import { DurationTable } from "@/components/duration-table";
-import { ScenarioCompare } from "@/components/scenario-compare";
-import { ValidationTable } from "@/components/validation-table";
+import { notFound } from "next/navigation";
+import { ReservoirDetail } from "@/components/reservoir-detail";
+import { SiteFooter } from "@/components/site-footer";
+import { getReservoir, specAsOf } from "@/lib/data";
+import stationIndex from "@/data/rainfall/index.json";
+import kwoni from "@/data/validation/kwoni.json";
 
-// 저수지 상세(표준코드) — 빈 화면 (내용은 아직 구현하지 않았다)
+// 화면 2 — 저수지 상세 (design/wireframe.md 2절). 계산은 브라우저에서 한다
 export default function ReservoirPage({ params }: PageProps<"/r/[code]">) {
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 p-6">
-      <Suspense fallback={<h1 className="text-xl font-semibold">저수지</h1>}>
-        <Title params={params} />
+    <div className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col px-4 sm:px-8">
+      <Suspense fallback={<p className="py-10 text-sub">저수지를 불러오는 중…</p>}>
+        <Detail params={params} />
       </Suspense>
-      <SpecPanel />
-      <InputForm />
-      <VerdictPanel />
-      <DamSection />
-      <FloodChart />
-      <DurationTable />
-      <ScenarioCompare />
-      <ValidationTable />
-    </main>
+      <SiteFooter asOf={specAsOf} />
+    </div>
   );
 }
 
-async function Title({ params }: { params: PageProps<"/r/[code]">["params"] }) {
+async function Detail({ params }: { params: PageProps<"/r/[code]">["params"] }) {
   const { code } = await params;
-  return <h1 className="text-xl font-semibold">저수지 {code}</h1>;
+  if (!/^\d{10}$/.test(code)) notFound();
+  const rec = getReservoir(code);
+  if (!rec) notFound();
+  return (
+    <ReservoirDetail
+      record={rec}
+      asOf={specAsOf}
+      stations={stationIndex.stations}
+      report={code === kwoni.code ? kwoni : null}
+    />
+  );
 }

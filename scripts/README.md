@@ -9,7 +9,8 @@
 | 스크립트 | 만드는 파일 |
 |---|---|
 | `preprocess.py` | `data/` 전체 (아래 단계) |
-| `build_kwoni.py` | `tests/fixtures/kwoni-report.json` (권이 보고서 검증값, CLAUDE.md 6절) |
+| `build_kwoni.py` | `tests/fixtures/kwoni-report.json`, `data/validation/kwoni.json` (권이 보고서 검증값, CLAUDE.md 6절) |
+| `build_rainfall_index.py` | `data/rainfall/index.json` (관측소별 자료기간·연수, 웹앱 관측소 목록) |
 | `export_hms.py` | `docs/hms/` (권이 120분 HEC-HMS 교차검증 입력·설정 체크리스트) |
 
 ## preprocess.py

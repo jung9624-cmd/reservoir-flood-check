@@ -1,16 +1,19 @@
 // 입력 검사: 예외 대신 "항목 + 이유" 목록을 돌려준다. 목록이 비어 있지 않으면 계산하지 않는다.
-import type { PublicSpec, RunOptions, UserInputs, ValidationIssue } from "./types";
+import type { PublicSpec, RunOptions, SpecOverrideField, UserInputs, ValidationIssue } from "./types";
 import { powerExponent } from "./storage";
+import { applySpecOverrides } from "./spec";
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
-export function validateInputs(spec: PublicSpec, inputs: UserInputs, options: RunOptions): ValidationIssue[] {
+/** 제원은 inputs.specOverrides를 반영한 값으로 검사한다. 제원 문제에는 specField를 붙인다(그 값을 입력하면 풀림) */
+export function validateInputs(rawSpec: PublicSpec, inputs: UserInputs, options: RunOptions): ValidationIssue[] {
+  const spec = applySpecOverrides(rawSpec, inputs.specOverrides);
   const out: ValidationIssue[] = [];
-  const add = (field: string, reason: string) => out.push({ field, reason });
+  const add = (field: string, reason: string, specField?: SpecOverrideField) => out.push(specField ? { field, reason, specField } : { field, reason });
 
   // --- 제원 ---
-  if (!isNum(spec.catchmentHa) || spec.catchmentHa <= 0) add("제원.유역면적", "유역면적이 없거나 0 이하입니다");
-  if (!isNum(spec.fullLevelElM) || spec.fullLevelElM === 0) add("제원.만수위", "만수위가 없거나 0입니다");
+  if (!isNum(spec.catchmentHa) || spec.catchmentHa <= 0) add("제원.유역면적", "유역면적이 없거나 0 이하입니다", "catchmentHa");
+  if (!isNum(spec.fullLevelElM) || spec.fullLevelElM === 0) add("제원.만수위", "만수위가 없거나 0입니다", "fullLevelElM");
   const table = inputs.storageTable;
   if (table && table.length > 0) {
     if (table.length < 2) add("설계 내용적표", "2행 이상이어야 합니다");
@@ -22,12 +25,12 @@ export function validateInputs(spec: PublicSpec, inputs: UserInputs, options: Ru
     if (sorted.some((p) => !isNum(p.levelElM) || !isNum(p.storageM3))) add("설계 내용적표", "숫자가 아닌 값이 있습니다");
   } else {
     // 제원 근사 곡선에 필요한 값
-    if (!isNum(spec.fullAreaHa) || spec.fullAreaHa <= 0) add("제원.만수면적", "만수면적이 없거나 0입니다 (내용적 곡선을 만들 수 없음)");
-    if (!isNum(spec.totalStorageThousandM3) || spec.totalStorageThousandM3 <= 0) add("제원.총저수량", "총저수량이 없거나 0입니다");
-    if (!isNum(spec.deadLevelElM)) add("제원.사수위", "사수위가 없습니다");
+    if (!isNum(spec.fullAreaHa) || spec.fullAreaHa <= 0) add("제원.만수면적", "만수면적이 없거나 0입니다 (내용적 곡선을 만들 수 없음)", "fullAreaHa");
+    if (!isNum(spec.totalStorageThousandM3) || spec.totalStorageThousandM3 <= 0) add("제원.총저수량", "총저수량이 없거나 0입니다", "totalStorageThousandM3");
+    if (!isNum(spec.deadLevelElM)) add("제원.사수위", "사수위가 없습니다", "deadLevelElM");
     // 사수위 음수는 막지 않는다(바닷가 담수호 등, 곡선 식은 h − h사수만 쓴다. data-audit 9.1)
     if (isNum(spec.deadLevelElM) && isNum(spec.fullLevelElM) && spec.deadLevelElM >= spec.fullLevelElM) {
-      add("제원.사수위", "사수위가 만수위 이상입니다");
+      add("제원.사수위", "사수위가 만수위 이상입니다", "deadLevelElM");
     }
     if (out.length === 0) {
       const m = powerExponent({
@@ -36,7 +39,7 @@ export function validateInputs(spec: PublicSpec, inputs: UserInputs, options: Ru
         totalStorageThousandM3: spec.totalStorageThousandM3!,
         fullAreaHa: spec.fullAreaHa!,
       });
-      if (!(m > 0) || !Number.isFinite(m)) add("제원.내용적 곡선", `지수 m = ${m}로 곡선을 만들 수 없습니다`);
+      if (!(m > 0) || !Number.isFinite(m)) add("제원.내용적 곡선", `지수 m = ${m}로 곡선을 만들 수 없습니다 (만수면적·총저수량을 확인)`, "fullAreaHa");
     }
   }
 

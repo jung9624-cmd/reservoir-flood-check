@@ -452,8 +452,10 @@ def hourly_series(r: pd.DataFrame, convention: str) -> pd.Series:
     return s
 
 
-def annual_max(s: pd.Series) -> dict:
-    """지속기간별 이동합의 연최대. 연도 = 구간 끝 시각에서 1시간 뺀 시각의 연도. 빈칸은 0으로 채운다."""
+def annual_max(s: pd.Series, first_year: int) -> dict:
+    """지속기간별 이동합의 연최대. 연도 = 구간 끝 시각에서 1시간 뺀 시각의 연도. 빈칸은 0으로 채운다.
+    first_year(관측 첫날의 해)보다 앞선 해는 뺀다: actual 시각에서 첫날 H24(00시)는 전날 23~24시 강우라
+    관측 시작 전 해에 1시간짜리 조각이 생기고 2시간 이상 이동합이 NaN이 된다(2026-11-19 수정)."""
     yr = (s.index - pd.Timedelta(hours=1)).year
     blank = s.isna().groupby(yr).sum()
     data = s.notna().groupby(yr).sum()
@@ -462,7 +464,7 @@ def annual_max(s: pd.Series) -> dict:
     for d in DURATIONS_HR:
         cols[d] = v.rolling(d).sum().groupby(yr).max()
     am = pd.DataFrame(cols)
-    keep = data[data > 0].index  # 값이 하나도 없는 해는 뺀다
+    keep = data[(data > 0) & (data.index >= first_year)].index  # 값이 없는 해, 관측 시작 전 해는 뺀다
     am = am.loc[keep]
     return {
         "years": [int(y) for y in am.index],
@@ -482,8 +484,8 @@ def step_d() -> dict[str, dict]:
     for code, g in r.groupby("Code"):
         res = {"station": code, "durationsHr": DURATIONS_HR, "valueNote": "고정시간 연최대(mm), 환산계수 적용 전"}
         for conv in ("actual", "khas"):
-            res[conv] = annual_max(hourly_series(g, conv))
-        (out_dir / f"{code}.json").write_text(json.dumps(res, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+            res[conv] = annual_max(hourly_series(g, conv), int(pd.to_datetime(g["Date"]).min().year))
+        (out_dir / f"{code}.json").write_text(json.dumps(res, ensure_ascii=False, separators=(",", ":"), allow_nan=False) + "\n", encoding="utf-8")
         yrs = res["actual"]["years"]
         summary[code] = {"firstYear": yrs[0] if yrs else None, "lastYear": yrs[-1] if yrs else None, "nYears": len(yrs)}
     n30 = sum(1 for s in summary.values() if s["nYears"] >= 30)

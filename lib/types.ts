@@ -131,6 +131,19 @@ export interface PublicSpec {
   asOf: string; // 제원 기준일
 }
 
+/** 사용자가 제원 값 대신 넣을 수 있는 항목 (제원 값이 이상하거나 비어 있을 때) */
+export type SpecOverrideField =
+  | "catchmentHa"
+  | "fullLevelElM"
+  | "floodLevelElM"
+  | "deadLevelElM"
+  | "totalStorageThousandM3"
+  | "fullAreaHa"
+  | "damType";
+
+/** 제원 대신 쓸 값. 넣은 항목만 바뀌고 출처는 "입력"이 된다 */
+export type SpecOverrides = { [K in SpecOverrideField]?: NonNullable<PublicSpec[K]> };
+
 /** 방류시설 하나: O = C·L·max(0, h − 마루)^1.5 */
 export interface Outlet {
   name: string;
@@ -166,6 +179,7 @@ export interface UserInputs {
   cn: { amc: "II" | "III"; value: number }; // 5. CN
   timing: TimingInputs; // 6. Tc·K 또는 L·최원점 표고
   storageTable?: StoragePoint[]; // 있으면 제원 근사 대신 사용 (CLAUDE.md 5.3)
+  specOverrides?: SpecOverrides; // 제원 값이 이상할 때 대신 쓸 값 (선택)
 }
 
 export type TimeConvention = "actual" | "khas";
@@ -197,6 +211,8 @@ export interface Sourced<T> {
 export interface ValidationIssue {
   field: string;
   reason: string;
+  /** 제원 값 문제면 그 항목. 이 값을 specOverrides로 넣으면 풀 수 있다 */
+  specField?: SpecOverrideField;
 }
 
 /** 등간격 시계열 */
@@ -238,7 +254,7 @@ export interface Verdict {
 }
 
 export interface RunWarning {
-  code: "areaReduction" | "floodControlNotConsidered" | "boundaryFreeboard" | "seokyeongDefinition" | "shortRecord";
+  code: "areaReduction" | "floodControlNotConsidered" | "boundaryFreeboard" | "seokyeongDefinition" | "shortRecord" | "specAnomaly";
   message: string;
 }
 

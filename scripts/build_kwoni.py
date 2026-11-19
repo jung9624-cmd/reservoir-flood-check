@@ -1,4 +1,6 @@
-"""권이 저수지 보고서 검증값 → tests/fixtures/kwoni-report.json
+"""권이 저수지 보고서 검증값 → tests/fixtures/kwoni-report.json, data/validation/kwoni.json
+
+같은 내용을 두 곳에 쓴다: 테스트용(fixture)과 웹앱의 "보고서 값 불러오기" 버튼용(data/).
 
 값은 CLAUDE.md 6절(권이저수지 재해복구 세부설계 2023, 제3장 수문분석·제4장 사업계획)에서 옮겼다.
 값을 바꾸려면 이 파일을 고치고 다시 실행한다:
@@ -8,7 +10,8 @@
 import json
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "kwoni-report.json"
+ROOT = Path(__file__).resolve().parent.parent
+OUTS = [ROOT / "tests" / "fixtures" / "kwoni-report.json", ROOT / "data" / "validation" / "kwoni.json"]
 
 KWONI = {
     "code": "4713010226",
@@ -88,9 +91,10 @@ KWONI = {
 
 
 def main() -> None:
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(KWONI, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"wrote {OUT}")
+    for out in OUTS:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(KWONI, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote {out}")
 
 
 if __name__ == "__main__":

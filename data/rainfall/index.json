@@ -1,0 +1,557 @@
+{
+ "source": "data/rainfall/annual-max (K-HAS Rain_HrData, actual 시각)",
+ "stations": [
+  {
+   "code": "090",
+   "firstYear": 1968,
+   "lastYear": 2024,
+   "nYears": 57
+  },
+  {
+   "code": "095",
+   "firstYear": 1988,
+   "lastYear": 2024,
+   "nYears": 37
+  },
+  {
+   "code": "098",
+   "firstYear": 1998,
+   "lastYear": 2024,
+   "nYears": 27
+  },
+  {
+   "code": "099",
+   "firstYear": 2001,
+   "lastYear": 2024,
+   "nYears": 24
+  },
+  {
+   "code": "100",
+   "firstYear": 1972,
+   "lastYear": 2024,
+   "nYears": 53
+  },
+  {
+   "code": "101",
+   "firstYear": 1966,
+   "lastYear": 2024,
+   "nYears": 59
+  },
+  {
+   "code": "102",
+   "firstYear": 2000,
+   "lastYear": 2024,
+   "nYears": 25
+  },
+  {
+   "code": "104",
+   "firstYear": 2009,
+   "lastYear": 2018,
+   "nYears": 10
+  },
+  {
+   "code": "105",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "106",
+   "firstYear": 1992,
+   "lastYear": 2024,
+   "nYears": 33
+  },
+  {
+   "code": "108",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "112",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "114",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "115",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "119",
+   "firstYear": 1964,
+   "lastYear": 2024,
+   "nYears": 61
+  },
+  {
+   "code": "121",
+   "firstYear": 1995,
+   "lastYear": 2024,
+   "nYears": 30
+  },
+  {
+   "code": "127",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "129",
+   "firstYear": 1968,
+   "lastYear": 2024,
+   "nYears": 57
+  },
+  {
+   "code": "130",
+   "firstYear": 1972,
+   "lastYear": 2024,
+   "nYears": 53
+  },
+  {
+   "code": "131",
+   "firstYear": 1967,
+   "lastYear": 2024,
+   "nYears": 58
+  },
+  {
+   "code": "133",
+   "firstYear": 1969,
+   "lastYear": 2024,
+   "nYears": 56
+  },
+  {
+   "code": "135",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "136",
+   "firstYear": 1983,
+   "lastYear": 2024,
+   "nYears": 42
+  },
+  {
+   "code": "137",
+   "firstYear": 2002,
+   "lastYear": 2024,
+   "nYears": 23
+  },
+  {
+   "code": "138",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "140",
+   "firstYear": 1968,
+   "lastYear": 2024,
+   "nYears": 57
+  },
+  {
+   "code": "143",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "146",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "152",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "155",
+   "firstYear": 1985,
+   "lastYear": 2024,
+   "nYears": 40
+  },
+  {
+   "code": "156",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "159",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "162",
+   "firstYear": 1968,
+   "lastYear": 2024,
+   "nYears": 57
+  },
+  {
+   "code": "165",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "168",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "169",
+   "firstYear": 1997,
+   "lastYear": 2024,
+   "nYears": 28
+  },
+  {
+   "code": "170",
+   "firstYear": 1972,
+   "lastYear": 2024,
+   "nYears": 53
+  },
+  {
+   "code": "172",
+   "firstYear": 2011,
+   "lastYear": 2018,
+   "nYears": 8
+  },
+  {
+   "code": "174",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "184",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "185",
+   "firstYear": 1988,
+   "lastYear": 2024,
+   "nYears": 37
+  },
+  {
+   "code": "188",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "189",
+   "firstYear": 1961,
+   "lastYear": 2024,
+   "nYears": 64
+  },
+  {
+   "code": "192",
+   "firstYear": 1969,
+   "lastYear": 2024,
+   "nYears": 56
+  },
+  {
+   "code": "201",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "202",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "203",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "211",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "212",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "216",
+   "firstYear": 1985,
+   "lastYear": 2024,
+   "nYears": 40
+  },
+  {
+   "code": "217",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "221",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "226",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "232",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "235",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "236",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "238",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "243",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "244",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "245",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "247",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "248",
+   "firstYear": 1988,
+   "lastYear": 2024,
+   "nYears": 37
+  },
+  {
+   "code": "251",
+   "firstYear": 2008,
+   "lastYear": 2012,
+   "nYears": 5
+  },
+  {
+   "code": "252",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "253",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "254",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "255",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "257",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "258",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "259",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "260",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "261",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "262",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "263",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "264",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "266",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "268",
+   "firstYear": 2002,
+   "lastYear": 2024,
+   "nYears": 23
+  },
+  {
+   "code": "271",
+   "firstYear": 1988,
+   "lastYear": 2024,
+   "nYears": 37
+  },
+  {
+   "code": "272",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "273",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "276",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "277",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "278",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "279",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "281",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "283",
+   "firstYear": 2012,
+   "lastYear": 2012,
+   "nYears": 1
+  },
+  {
+   "code": "284",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "285",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "288",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "289",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "294",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  },
+  {
+   "code": "295",
+   "firstYear": 1973,
+   "lastYear": 2024,
+   "nYears": 52
+  }
+ ]
+}

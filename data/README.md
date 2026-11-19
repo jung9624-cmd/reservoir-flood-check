@@ -9,5 +9,6 @@
 | `storage-2025.json` | 2025 홍수기(6/21~9/20) 평균·최대 저수율, 100 % 초과는 100으로 자름. 3,317곳 | preprocess C | 생성 |
 | `rainfall/annual-max/<관측소>.json` | 지속기간 1~24시간 고정시간 연최대(mm). `actual`(기본)·`khas`(검증용) 두 시각 배치, 빈칸 수 | preprocess D | 생성 (92곳) |
 | `stations.json` | ASOS 관측소 위치 | preprocess D | **미생성** — `../Reference/01_원자료/ASOS_지점정보.csv` 필요 |
+| `rainfall/index.json` | 관측소별 자료기간·연수 (웹앱 관측소 목록) | build_rainfall_index.py | 생성 |
 | `huff/khas-q3.json` | K-HAS Huff 3분위, 1 % 간격 분포율과 누가값 | preprocess E | 생성 |
-| (옮김) 권이 검증값 | `tests/fixtures/kwoni-report.json`으로 옮겼다 (테스트 전용) | build_kwoni.py | — |
+| `validation/kwoni.json` | 권이 보고서 설계값 (웹앱 "보고서 값 불러오기", CLAUDE.md 6절). `tests/fixtures/kwoni-report.json`과 같은 내용 | build_kwoni.py | 생성 |

@@ -68,3 +68,16 @@ export function storageFromTable(points: readonly StoragePoint[]): StorageCurve 
     },
   };
 }
+
+/** 저수량(m³) → 표고(EL.m). 곡선을 이분법으로 거꾸로 푼다 (초기수위 시나리오용) */
+export function levelForStorage(curve: StorageCurve, storageM3: number, topElM: number): number {
+  let lo = curve.minLevelElM;
+  let hi = topElM;
+  if (storageM3 <= 0) return lo;
+  for (let i = 0; i < 100 && hi - lo > 1e-6; i++) {
+    const mid = (lo + hi) / 2;
+    if (curve.storageAt(mid) > storageM3) hi = mid;
+    else lo = mid;
+  }
+  return (lo + hi) / 2;
+}
