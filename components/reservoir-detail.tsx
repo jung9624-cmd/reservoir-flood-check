@@ -206,7 +206,7 @@ function DetailBody({ record, asOf, stations, report }: Props) {
       <span className="inline-flex items-center gap-1 text-sub">Huff 3분위 <Help k="huff" /></span>
     </p>
   );
-  const sel = "h-9 rounded-md border border-line bg-white px-2 text-sm text-ink";
+  const sel = "h-9 max-w-full rounded-md border border-line bg-white px-2 text-sm text-ink";
 
   // 인쇄용 보기의 제원·입력값 표 (계산에 쓴 값과 출처)
   const printRows: PrintRow[] = [];
@@ -316,7 +316,7 @@ function DetailBody({ record, asOf, stations, report }: Props) {
       <section aria-labelledby="opt-title" className="border-t border-line py-5">
         <h2 id="opt-title" className="mb-3 text-[13px] font-medium text-sub">계산 조건 · 확률강우량</h2>
         <div className="flex flex-wrap items-end gap-4 text-sm text-ink">
-          <label className="flex flex-col gap-1 text-[13px]">
+          <label className="flex min-w-0 max-w-full flex-col gap-1 text-[13px]">
             <span className="flex items-center gap-1.5">ASOS 관측소 <SourceBadge source={auto("기상청 ASOS · K-HAS 시간강우")} /></span>
             <select className={sel} value={opts.stationCode} onChange={(e) => {
               const st = stations.find((s) => s.code === e.target.value);

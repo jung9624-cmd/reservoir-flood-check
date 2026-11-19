@@ -1,0 +1,12 @@
+# 배포에 올리지 않는 로컬 파일 (키·캐시·빌드 결과)
+.env*
+!.env.example
+.vercel
+.next
+node_modules
+scripts/.cache
+__pycache__
+*.tsbuildinfo
+*.mdb
+*.pdf
+*.zip
