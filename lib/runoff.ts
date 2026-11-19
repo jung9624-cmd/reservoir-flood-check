@@ -1,7 +1,16 @@
 // CN-Ⅱ→Ⅲ, NRCS 누가 유효우량, Clark 단위도(시간-면적 + 선형저수지), 할증.
 // 근거: CLAUDE.md 5-4, 5.2, 5-6, 5-7, 5-12, docs/calc-rules.md 3·4절
 import type { TimeSeries } from "./types";
-import { depthMmToFlowCms, hrToMin } from "./units";
+import { depthMmToFlowCms, hrToMin, minToHr } from "./units";
+
+/** 홍수량 계산 간격 (CLAUDE.md 5-12) */
+export const HYDROGRAPH_DT_MIN = 10;
+
+/**
+ * 선형저수지 CA = Δt/(K + 0.5Δt)가 1을 넘지 않으려면 K ≥ 0.5Δt. 이보다 작으면 유출이 출렁이고 음수가 될 수 있다.
+ * Δt 10분 → K ≥ 5분 = 0.0833 hr
+ */
+export const minStableKHr = (dtMin = HYDROGRAPH_DT_MIN): number => minToHr(dtMin / 2);
 
 /** CN-Ⅲ = 23·CNⅡ / (10 + 0.13·CNⅡ) */
 export function cn2ToCn3(cn2: number): number {

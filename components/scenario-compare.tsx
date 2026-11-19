@@ -38,7 +38,7 @@ export function ScenarioCompare({ base, baseLabel, scenarios, results, pending }
     <section aria-labelledby="sc-title" className="border-t border-line py-6">
       <h2 id="sc-title" className="mb-1 text-[13px] font-medium text-sub">⑧ 시나리오 비교 — 기준안에서 한 가지만 바꿨을 때</h2>
       <p className="mb-3 text-xs text-sub">▲ 늘어남 ▼ 줄어듦. 최고수위·여유고는 판정과 같게 0.01 m로 반올림한 값의 차이, 최대방류량은 임계지속기간의 값</p>
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="w-full min-w-[900px] border-collapse text-sm">
           <caption className="sr-only">시나리오별 판정, 여유고, 최고수위, 최대방류량, 임계지속기간과 기준안 대비 변화량</caption>
           <thead>

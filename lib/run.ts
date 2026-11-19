@@ -7,7 +7,7 @@ import type {
 import { DURATIONS_MIN } from "./types";
 import { probableRainfall } from "./rainfall";
 import { huffHyetograph } from "./hyetograph";
-import { clarkHydrograph, cn2ToCn3, effectiveRainfall, FILL_DAM_FACTOR, isFillDam, scaleSeries, seokyeongTcK } from "./runoff";
+import { clarkHydrograph, cn2ToCn3, effectiveRainfall, FILL_DAM_FACTOR, HYDROGRAPH_DT_MIN, isFillDam, minStableKHr, scaleSeries, seokyeongTcK } from "./runoff";
 import { storageFromSpec, storageFromTable, type StorageCurve } from "./storage";
 import { modifiedPuls } from "./routing";
 import { judge } from "./judge";
@@ -16,7 +16,7 @@ import { AREA_REDUCTION_CATCHMENT_KM2, haToKm2 } from "./units";
 import { applySpecOverrides, overriddenFields, SPEC_FIELD_LABEL, specAnomalies } from "./spec";
 
 export const DEFAULT_SPILLWAY_COEFFICIENT = 2.0; // CLAUDE.md 5-9
-export const HYDROGRAPH_DT_MIN = 10; // CLAUDE.md 5-12
+export { HYDROGRAPH_DT_MIN };
 export const ROUTING_DT_MIN = 1;
 
 export interface RunData {
@@ -84,6 +84,9 @@ export function runAll(rawSpec: PublicSpec, inputs: UserInputs, options: RunOpti
     used.tcHr = { value: tcHr, source: src };
     used.kHr = { value: kHr, source: src };
     warnings.push({ code: "seokyeongDefinition", message: "서경대 공식의 H 정의와 α 선택 기준은 확인이 필요합니다" });
+    if (!(kHr >= minStableKHr())) {
+      return { ok: false, issues: [{ field: "K", reason: `서경대 공식으로 구한 K ${kHr.toFixed(3)} hr가 ${minStableKHr().toFixed(4)} hr(Δt/2 = 5분)보다 작아 Clark 계산이 불안정합니다` }] };
+    }
   }
 
   // --- 방류시설 ---
@@ -142,6 +145,11 @@ export function runAll(rawSpec: PublicSpec, inputs: UserInputs, options: RunOpti
       source: INPUT,
     };
   } else {
+    const table = data.annualMax![options.timeConvention];
+    const n = table.years.filter((y) => y >= options.firstYear && y <= options.lastYear).length;
+    if (n < 2) {
+      return { ok: false, issues: [{ field: "자료기간", reason: `관측소 ${options.stationCode}의 ${options.firstYear}~${options.lastYear} 자료가 ${n}년뿐입니다. Gumbel 적합에는 2년 이상(권장 30년 이상)이 필요합니다` }] };
+    }
     rainfall = probableRainfall(data.annualMax!, {
       timeConvention: options.timeConvention,
       firstYear: options.firstYear,

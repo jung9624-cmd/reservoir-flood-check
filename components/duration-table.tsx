@@ -19,7 +19,7 @@ export function DurationTable({ durations, critical, selected, onSelect, damCres
     <section aria-labelledby="dur-title" className="border-t border-line py-6">
       <h2 id="dur-title" className="mb-3 text-[13px] font-medium text-sub">⑦ 지속기간별 결과 — 행을 누르면 단면·수문곡선이 그 지속기간으로 바뀝니다</h2>
       {note && <div className="mb-3 text-sm text-ink">{note}</div>}
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <caption className="sr-only">지속기간 10개의 확률강우량, 설계홍수량, 최대방류량, 최고수위, 여유고</caption>
           <thead>

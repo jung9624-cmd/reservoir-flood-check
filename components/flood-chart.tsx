@@ -2,7 +2,7 @@
 
 // ⑥ 수문곡선 (Recharts): 강우(위에서 아래로) / 유입(× 할증)·방류 / 저수위. 세 그래프가 시간축(분)을 같이 쓴다
 import { cloneElement, type ReactElement } from "react";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { DurationResult } from "@/lib/types";
 
 const INK = "#1f2328", SUB = "#57606a", WATER = "#1f6fb2", GRID = "#eaeef2";
@@ -38,6 +38,10 @@ export function FloodChart(props: {
   const outflow = d.outflowCms.values.map((v, i) => ({ t: i, q: v })).filter((p) => p.t % step === 0);
   const level = d.levelElM.values.map((v, i) => ({ t: i, h: v })).filter((p) => p.t % step === 0);
   const xDomain: [number, number] = [0, end];
+  // 첨두: 유입(10분 자료)과 방류(1분 자료)의 최댓값과 그 시각
+  const peakIn = inflow.reduce((b, p) => (p.q > b.q ? p : b), { t: 0, q: -Infinity });
+  const peakOutIdx = d.outflowCms.values.indexOf(d.peakOutflowCms);
+  const peakOut = { t: peakOutIdx, q: d.peakOutflowCms };
   const ticks = Array.from({ length: Math.floor(end / (end > 600 ? 120 : 60)) + 1 }, (_, i) => i * (end > 600 ? 120 : 60));
   const x = (show: boolean) => (
     <XAxis dataKey="t" type="number" domain={xDomain} ticks={ticks} tick={show ? tick : false} height={show ? 36 : 4} allowDuplicatedCategory={false}
@@ -64,6 +68,8 @@ export function FloodChart(props: {
             <YAxis tick={tick} width={64} label={yLabel("유량 m³/s")} />
             <Tooltip formatter={(v, name) => [`${fmt(v)} m³/s`, name]} labelFormatter={(t) => `${t}분`} />
             <ReferenceLine x={d.timeOfMaxLevelMin} stroke="var(--fail)" strokeDasharray="3 3" />
+            <ReferenceDot x={peakIn.t} y={peakIn.q} r={4} fill={WATER} stroke="#fff" label={{ value: `유입 첨두 ${peakIn.q.toFixed(2)} (${peakIn.t}분)`, position: "left", fontSize: 12, fill: WATER }} />
+            <ReferenceDot x={peakOut.t} y={peakOut.q} r={4} fill={INK} stroke="#fff" label={{ value: `방류 첨두 ${peakOut.q.toFixed(2)} (${peakOut.t}분)`, position: "right", fontSize: 12, fill: INK }} />
             <Line data={inflow} dataKey="q" name={factor !== 1 ? `유입 × ${factor}` : "유입"} stroke={WATER} strokeWidth={2.5} dot={false} isAnimationActive={false} />
             <Line data={outflow} dataKey="q" name="방류" stroke={INK} strokeWidth={2} dot={false} isAnimationActive={false} />
           </LineChart>

@@ -509,7 +509,10 @@ def step_d_stations(summary: dict[str, dict] | None) -> None:
     c_code, c_name, c_lat, c_lon = pick("지점번호", "지점"), pick("지점명"), pick("위도"), pick("경도")
     if None in (c_code, c_name, c_lat, c_lon):
         raise Stop(f"ASOS 지점정보 열을 알 수 없습니다(지점번호·지점명·위도·경도 필요): {list(col)}")
-    st = st.drop_duplicates(c_code, keep="last")  # 지점 이전이 있으면 마지막 행
+    c_start = pick("시작일")
+    if c_start:
+        st = st.sort_values(c_start, kind="stable")  # 지점 이전 이력: 시작일 순으로 놓고
+    st = st.drop_duplicates(c_code, keep="last")  # 가장 최근 위치(마지막 행)를 쓴다
     if summary is None:
         summary = {p.stem: {} for p in (DATA / "rainfall" / "annual-max").glob("*.json")}
     items, nocoord = [], []

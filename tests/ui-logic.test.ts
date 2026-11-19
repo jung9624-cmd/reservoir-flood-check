@@ -88,3 +88,16 @@ describe("자료 신뢰도 · 용어 도움말", () => {
     expect(r.ok && r.warnings.find((w) => w.code === "floodControlNotConsidered")?.message).toMatch(/^설계기준 제5편 8\.2\.1 홍수조절 미고려 대상 — 물넘이 설계유량은 유입량 기준 검토 필요/);
   });
 });
+
+describe("가까운 관측소 (data/stations.json)", () => {
+  it("권이 좌표에서 가장 가까운 30년 이상 관측소는 포항(138)", async () => {
+    const { nearestStation } = await import("@/lib/station");
+    const file = (await import("@/data/stations.json")).default as { stations: import("@/lib/types").Station[] };
+    expect(file.stations).toHaveLength(92);
+    const n = nearestStation(35.856391, 129.435537, file.stations, 30)!;
+    expect(n.station.code).toBe("138");
+    expect(n.station.name).toBe("포항");
+    expect(n.distanceKm).toBeGreaterThan(15);
+    expect(n.distanceKm).toBeLessThan(25);
+  });
+});

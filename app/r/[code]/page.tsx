@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { ReservoirDetail } from "@/components/reservoir-detail";
 import { SiteFooter } from "@/components/site-footer";
 import { getReservoir, specAsOf } from "@/lib/data";
-import stationIndex from "@/data/rainfall/index.json";
+import stationsFile from "@/data/stations.json";
+import type { Station } from "@/lib/types";
 import kwoni from "@/data/validation/kwoni.json";
 
 // 화면 2 — 저수지 상세 (design/wireframe.md 2절). 계산은 브라우저에서 한다
@@ -27,7 +28,7 @@ async function Detail({ params }: { params: PageProps<"/r/[code]">["params"] }) 
     <ReservoirDetail
       record={rec}
       asOf={specAsOf}
-      stations={stationIndex.stations}
+      stations={stationsFile.stations as Station[]}
       report={code === kwoni.code ? kwoni : null}
     />
   );

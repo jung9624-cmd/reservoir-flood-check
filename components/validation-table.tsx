@@ -23,7 +23,7 @@ export function ValidationTable({ report, rainfall, routing }: { report: ReportC
           권이 보고서와 비교 (재해복구 세부설계 2023) <span className="text-sm text-sub">— 확률강우량 {c1.tolerance_pct} %, 유량 {tol.flow_pct} %, 수위 ±{tol.level_m} m 기준</span>
         </summary>
         <div className="mt-4 grid gap-8 lg:grid-cols-2">
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <h3 className="mb-2 text-[13px] font-medium text-sub">검증값 1 · 200년 확률강우량 (포항 1961~2022, K-HAS 시각)</h3>
             {rainfall ? (
               <table className="num w-full border-collapse text-sm">
@@ -37,7 +37,7 @@ export function ValidationTable({ report, rainfall, routing }: { report: ReportC
               </table>
             ) : <p className="text-sm text-sub">포항(138) 연최대 자료를 불러오는 중…</p>}
           </div>
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <h3 className="mb-2 text-[13px] font-medium text-sub">검증값 2 · 보고서 확률강우량 + 설계 내용적표</h3>
             {routing?.ok ? (
               <table className="num w-full border-collapse text-sm">

@@ -83,7 +83,7 @@ export function ReservoirTable(props: {
         </h2>
         <p className="text-[13px] text-sub">행에서 ↑↓ 이동 · Enter 상세</p>
       </div>
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <caption className="sr-only">저수지 목록: 이름, 소재지, 유역면적, 총저수량, 홍수빈도, 입력 상태</caption>
           <thead className="border-b border-line">

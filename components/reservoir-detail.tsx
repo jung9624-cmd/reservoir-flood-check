@@ -15,7 +15,8 @@ import { isFillDam, FILL_DAM_FACTOR } from "@/lib/runoff";
 import { exportAll, importAll, loadEntry, removeEntry, saveEntry, type SavedOptions } from "@/lib/saved";
 import { buildScenarios, type ScenarioJob } from "@/lib/scenarios";
 import { applySpecOverrides, specAnomalies } from "@/lib/spec";
-import type { RunOptions, UserInputs } from "@/lib/types";
+import type { RunOptions, Station, UserInputs } from "@/lib/types";
+import { distanceKm, nearestStation } from "@/lib/station";
 import { validateInputs } from "@/lib/validate";
 import { precisionText, SPEC_CURVE_NOTE } from "@/lib/reliability";
 import { Help } from "./help";
@@ -35,7 +36,6 @@ import { PrintSheet, type PrintRow } from "./print-sheet";
 import { isRoundFloodMargin } from "@/lib/reliability";
 
 type Report = typeof kwoniJson;
-interface StationInfo { code: string; firstYear: number; lastYear: number; nYears: number }
 
 const huff = huffFile as { timePct: number[]; cumulativePct: number[] };
 const LEVEL_ROUNDING_M = 0.01;
@@ -68,7 +68,7 @@ function download(name: string, text: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-type Props = { record: ReservoirRecord; asOf: string; stations: StationInfo[]; report: Report | null };
+type Props = { record: ReservoirRecord; asOf: string; stations: Station[]; report: Report | null };
 
 /** 브라우저 저장소에서 입력값을 읽어야 하므로 하이드레이션 뒤에 본문을 그린다 */
 export function ReservoirDetail(props: Props) {
@@ -88,8 +88,11 @@ export function ReservoirDetail(props: Props) {
 function DetailBody({ record, asOf, stations, report }: Props) {
   const code = record.spec.code;
   const spec = useMemo(() => toPublicSpec(record.spec, asOf), [record.spec, asOf]);
+  const coord = record.coord && record.coord.source !== "none" ? record.coord : null;
+  // 기본 관측소: 저수지 좌표에서 가장 가까운 30년 이상 ASOS (CLAUDE.md 5.1). 좌표가 없으면 직접 고른다
+  const nearest = useMemo(() => (coord ? nearestStation(coord.lat, coord.lon, stations, 30) : null), [coord, stations]);
   const defaultOptions = (): SavedOptions => {
-    const st = report ? stations.find((s) => s.code === report.inputs.station.code) : undefined;
+    const st = nearest?.station ?? (report ? stations.find((s) => s.code === report.inputs.station.code) : undefined);
     return { stationCode: st?.code ?? "", firstYear: st?.firstYear ?? null, lastYear: st?.lastYear ?? null, timeConvention: "actual", returnPeriodYr: 200 };
   };
 
@@ -141,7 +144,7 @@ function DetailBody({ record, asOf, stations, report }: Props) {
   const scenarios = useMemo(() => {
     if (!baseJob) return [];
     return buildScenarios(baseJob as ScenarioJob, {
-      stationRange: station ? { firstYear: station.firstYear, lastYear: station.lastYear } : null,
+      stationRange: station && station.firstYear !== null && station.lastYear !== null ? { firstYear: station.firstYear, lastYear: station.lastYear } : null,
       currentLevelElM: water.status === "ok" ? water.levelElM : null,
       currentLevelNote: water.status === "none" ? water.reason : water.status === "loading" ? "불러오는 중" : "수위 값이 없습니다",
       floodSeasonMaxPct: record.storage2025?.floodSeasonMaxPct ?? null,
@@ -186,14 +189,19 @@ function DetailBody({ record, asOf, stations, report }: Props) {
       : <><b className="text-[13px] font-semibold text-ink">위치 근사</b><SourceBadge source={auto(`소재지 ${loc.approxLevel} 중심 (OSM)`)} /></>;
 
   const setOpt = <K extends keyof SavedOptions>(k: K, v: SavedOptions[K]) => setOpts((p) => ({ ...p, [k]: v }));
-  const years = station ? Array.from({ length: station.lastYear - station.firstYear + 1 }, (_, i) => station.firstYear + i) : [];
-  const stationName = report && opts.stationCode === report.inputs.station.code ? ` ${report.inputs.station.name}` : "";
+  const years = station && station.firstYear !== null && station.lastYear !== null ? Array.from({ length: station.lastYear - station.firstYear + 1 }, (_, i) => station.firstYear! + i) : [];
+  const stationName = station ? ` ${station.name}` : "";
+  const distOf = (s: Station) => (coord ? distanceKm(coord.lat, coord.lon, s.lat, s.lon) : null);
+  const dist = station ? distOf(station) : null;
+  const distText = dist === null
+    ? "거리 — (저수지 좌표 없음)"
+    : `거리 ${dist.toFixed(1)} km${coord?.source === "approx" ? " (위치 근사 기준)" : ""}${nearest && station && nearest.station.code === station.code ? " · 가장 가까운 30년 이상 관측소" : ""}`;
   const storageNote = dr.storageRows > 0 ? `설계 내용적표 ${dr.storageRows}행 (입력)` : SPEC_CURVE_NOTE;
   const conditions = `ASOS ${opts.stationCode || "—"}${stationName} ${options.firstYear}~${options.lastYear}${ok ? ` (${ok.rainfall.nYears}년)` : ""}, ${opts.timeConvention === "actual" ? "실제 시각" : "K-HAS 시각"}, ${opts.returnPeriodYr}년, Huff 3분위, 내용적 ${storageNote}, 초기수위 만수위, 최고수위 0.01 m 반올림 비교`;
   const rainInfo = ok && (
     <p className="flex flex-wrap items-center gap-x-1.5">
       <b className="font-semibold">확률강우량</b>
-      <span>— ASOS {opts.stationCode}{stationName} · 거리 — (관측소 위치 자료가 없어 계산하지 못함) · 자료기간 {options.firstYear}~{options.lastYear} · 자료연수 {ok.rainfall.nYears}년{ok.rainfall.nYears < 30 ? " (30년 미만)" : ""} · {opts.timeConvention === "actual" ? "실제 시각" : "K-HAS 시각"} · Gumbel(PWM) · {opts.returnPeriodYr}년</span>
+      <span>— ASOS {opts.stationCode}{stationName} · {distText} · 자료기간 {options.firstYear}~{options.lastYear} · 자료연수 {ok.rainfall.nYears}년{ok.rainfall.nYears < 30 ? " (30년 미만)" : ""} · {opts.timeConvention === "actual" ? "실제 시각" : "K-HAS 시각"} · Gumbel(PWM) · {opts.returnPeriodYr}년</span>
       <span className="inline-flex items-center gap-1 text-sub">환산계수 <Help k="conversion" /></span>
       <span className="inline-flex items-center gap-1 text-sub">Huff 3분위 <Help k="huff" /></span>
     </p>
@@ -213,7 +221,7 @@ function DetailBody({ record, asOf, stations, report }: Props) {
     add("총저수량", "totalStorageThousandM3", 0, " 천m³");
     add("만수면적", "fullAreaHa", 1, " ha");
     add("제체형식", "damType");
-    printRows.push({ label: "위치", value: loc && loc.source !== "none" ? `${loc.lat.toFixed(5)}, ${loc.lon.toFixed(5)}` : "—", source: { kind: "text", text: !loc || loc.source === "none" ? "없음" : loc.source === "safetydata" ? `공유플랫폼 · 정밀도 ${precisionText(loc.precisionM)}` : `위치 근사 · 소재지 ${loc.approxLevel}` } });
+    printRows.push({ label: "위치", value: loc && loc.source !== "none" ? `${loc.lat}, ${loc.lon}` : "—", source: { kind: "text", text: !loc || loc.source === "none" ? "없음" : loc.source === "safetydata" ? `공유플랫폼 · 정밀도 ${precisionText(loc.precisionM)}` : `위치 근사 · 소재지 ${loc.approxLevel}` } });
     add("물넘이 폭", "spillwayWidthM", 1, " m");
     add("물넘이 마루표고", "spillwayCrestElM");
     add("물넘이 유량계수", "spillwayCoefficient");
@@ -223,7 +231,7 @@ function DetailBody({ record, asOf, stations, report }: Props) {
     add("Tc", "tcHr", 2, " hr");
     add("K", "kHr", 2, " hr");
     printRows.push({ label: "내용적", value: dr.storageRows > 0 ? `설계 내용적표 ${dr.storageRows}행` : "제원 근사 곡선", source: dr.storageRows > 0 ? { kind: "input" } : { kind: "text", text: SPEC_CURVE_NOTE } });
-    printRows.push({ label: "확률강우량", value: `ASOS ${opts.stationCode}${stationName} ${options.firstYear}~${options.lastYear} (${ok.rainfall.nYears}년)`, source: { kind: "text", text: `${opts.timeConvention === "actual" ? "실제 시각" : "K-HAS"} · 거리 — (관측소 위치 없음)` } });
+    printRows.push({ label: "확률강우량", value: `ASOS ${opts.stationCode}${stationName} ${options.firstYear}~${options.lastYear} (${ok.rainfall.nYears}년)`, source: { kind: "text", text: `${opts.timeConvention === "actual" ? "실제 시각" : "K-HAS"} · ${distText}` } });
     add("할증", "designFactor", 1, "");
   }
 
@@ -262,12 +270,11 @@ function DetailBody({ record, asOf, stations, report }: Props) {
           </h1>
           <p className="flex flex-wrap items-center gap-2 text-[15px] text-sub">
             {record.spec.address} · {record.spec.hq}본부 {record.spec.branch}지사
-            {loc && loc.source !== "none" && <span className="num">· {loc.lat.toFixed(5)}, {loc.lon.toFixed(5)}</span>}
+            {loc && loc.source !== "none" && <span className="num">· {loc.lat}, {loc.lon}</span>}
             {locBadge}
           </p>
           <p className="text-[15px] text-sub">
-            확률강우량 관측소 ASOS {opts.stationCode || "미선택"}
-            {report && opts.stationCode === report.inputs.station.code && ` (${report.inputs.station.name})`} · 거리 — (관측소 위치 자료가 없어 계산하지 못함) · 제원 기준일 <span className="num">{asOf}</span>
+            확률강우량 관측소 {station ? <>ASOS {station.name}({station.code}) · <span className="num">{distText}</span></> : "미선택"} · 제원 기준일 <span className="num">{asOf}</span>
           </p>
         </div>
         <div className="no-print flex flex-wrap gap-2">
@@ -316,9 +323,14 @@ function DetailBody({ record, asOf, stations, report }: Props) {
               setOpts((o) => ({ ...o, stationCode: e.target.value, firstYear: st?.firstYear ?? null, lastYear: st?.lastYear ?? null }));
             }}>
               <option value="">관측소를 고르세요</option>
-              {stations.map((s) => (
-                <option key={s.code} value={s.code}>{s.code}{report && s.code === report.inputs.station.code ? ` ${report.inputs.station.name}` : ""} · {s.firstYear}~{s.lastYear} ({s.nYears}년){s.nYears < 30 ? " · 30년 미만" : ""}</option>
-              ))}
+              {[...stations].sort((a, b) => (distOf(a) ?? 0) - (distOf(b) ?? 0) || a.code.localeCompare(b.code)).map((s) => {
+                const d = distOf(s);
+                return (
+                  <option key={s.code} value={s.code}>
+                    {s.name}({s.code}){d !== null ? ` · ${d.toFixed(1)} km` : ""} · {s.firstYear}~{s.lastYear} ({s.nYears}년){s.nYears < 30 ? " · 30년 미만" : ""}
+                  </option>
+                );
+              })}
             </select>
           </label>
           <label className="flex flex-col gap-1 text-[13px]">자료기간 시작
@@ -345,7 +357,12 @@ function DetailBody({ record, asOf, stations, report }: Props) {
             </div>
           </fieldset>
         </div>
-        <p className="mt-2 text-xs text-sub">관측소 위치 자료(ASOS 지점정보)가 아직 없어 가까운 관측소를 자동으로 고르지 못합니다. 자료 30년 이상인 관측소를 직접 고르세요.</p>
+        <p className="mt-2 text-xs text-sub">
+          {nearest
+            ? `기본값은 저수지 좌표${coord?.source === "approx" ? "(위치 근사)" : ""}에서 가장 가까운 자료 30년 이상 관측소 ${nearest.station.name}(${nearest.station.code}, ${nearest.distanceKm.toFixed(1)} km)입니다. 목록은 가까운 순이며 다른 관측소를 고를 수 있습니다.`
+            : "저수지 좌표가 없어 가까운 관측소를 고르지 못했습니다. 관측소를 직접 고르세요."}
+          {" "}관측소 좌표: 기상청 기상자료개방포털 ASOS 지점정보(현재 위치).
+        </p>
       </section>
 
       {/* ④~⑧ 또는 안내 */}

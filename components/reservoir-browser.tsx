@@ -2,7 +2,7 @@
 
 // 화면 1의 검색·필터 상태를 지도와 표가 함께 쓴다 (design/wireframe.md 1절)
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import type { ListRow } from "@/lib/list-rows";
 import { loadAll } from "@/lib/saved";
@@ -49,6 +49,7 @@ function matches(r: ListRow, f: Filters, st: RowStatus): boolean {
 export function ReservoirBrowser({ rows }: { rows: ListRow[] }) {
   const [f, setF] = useState<Filters>(initial);
   const [selected, setSelected] = useState<string | null>(null);
+  const [showMap, setShowMap] = useState(false); // 좁은 화면에서는 지도를 접고 표부터 (design/wireframe.md 1.2)
   // 브라우저에 저장된 입력값 → 입력 상태 (하이드레이션 뒤에 읽는다)
   const hydrated = useHydrated();
   const status = useMemo(() => {
@@ -64,6 +65,8 @@ export function ReservoirBrowser({ rows }: { rows: ListRow[] }) {
     [rows, f.hq],
   );
   const filtered = useMemo(() => rows.filter((r) => matches(r, f, status[r.code] ?? "none")), [rows, f, status]);
+  // 검색어를 칠 때마다 3,402점을 다시 그리지 않게 지도는 한 박자 늦게 따라간다
+  const mapRows = useDeferredValue(filtered);
   const set = <K extends keyof Filters>(k: K, v: Filters[K]) => setF((p) => ({ ...p, [k]: v, ...(k === "hq" ? { branch: "" } : {}) }));
 
   const sel = "h-10 rounded-md border border-line bg-white px-3 text-sm text-ink";
@@ -108,8 +111,11 @@ export function ReservoirBrowser({ rows }: { rows: ListRow[] }) {
         <Segmented label="입력 상태" value={f.status} onChange={(v) => set("status", v)} items={[["all", "전체"], ["none", "미입력"], ["entered", "입력됨"], ["pass", "적합"], ["fail", "부적합"]]} />
       </div>
       <div className="grid gap-6 py-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <div className="h-80 lg:sticky lg:top-4 lg:h-[640px]">
-          <ReservoirMap rows={filtered} status={status} selected={selected} onSelect={setSelected} />
+        <button type="button" aria-expanded={showMap} onClick={() => setShowMap((v) => !v)} className="h-10 rounded-md border border-line text-sm text-ink lg:hidden">
+          {showMap ? "지도 접기" : "지도 보기"}
+        </button>
+        <div className={`h-80 lg:sticky lg:top-4 lg:block lg:h-[640px] ${showMap ? "block" : "hidden"}`}>
+          <ReservoirMap rows={mapRows} status={status} selected={selected} onSelect={setSelected} />
         </div>
         <ReservoirTable rows={filtered} total={rows.length} status={status} selected={selected} onSelect={setSelected} filters={f} />
       </div>

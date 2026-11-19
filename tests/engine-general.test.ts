@@ -130,3 +130,19 @@ describe("10. 시나리오 독립성", () => {
     expect(JSON.stringify(withGate)).toBe(before);
   });
 });
+
+describe("배포 전 리뷰에서 막은 경우", () => {
+  it("자료기간이 1년이면 예외 대신 '자료기간' 이유 (Gumbel 2년 이상)", async () => {
+    const { annualMax, optionsStation } = await import("./helpers/kwoni");
+    const r = runAll(spec, inputs, optionsStation("actual", 2000, 2000), { huff, annualMax });
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.issues[0].field).toBe("자료기간");
+  });
+  it("K < Δt/2(5분)이면 선형저수지가 불안정하므로 입력 검사가 막는다", () => {
+    const r = runAll(spec, { ...inputs, timing: { tcHr: 0.26, kHr: 0.05 } }, optionsReport, { huff });
+    expect(!r.ok && r.issues.map((i) => i.field)).toContain("K");
+    const ok = runAll(spec, { ...inputs, timing: { tcHr: 0.26, kHr: 5 / 60 } }, optionsReport, { huff });
+    expect(ok.ok).toBe(true);
+    if (ok.ok) for (const d of ok.durations) expect(Math.min(...d.inflowCms.values)).toBeGreaterThanOrEqual(0);
+  });
+});

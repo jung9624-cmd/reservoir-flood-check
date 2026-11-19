@@ -31,7 +31,11 @@ export function ReservoirMap({ rows, status, selected, onSelect }: { rows: ListR
     }).addTo(m);
     map.current = m;
     layer.current = L.layerGroup().addTo(m);
+    // 접혀 있다가 펼쳐지면(모바일) 크기를 다시 잰다
+    const ro = new ResizeObserver(() => m.invalidateSize());
+    ro.observe(box.current);
     return () => {
+      ro.disconnect();
       m.remove();
       map.current = null;
     };

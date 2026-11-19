@@ -27,7 +27,19 @@ function remember(key: string, r: RunResult) {
   cache.set(key, r);
 }
 
+let workerBroken = false;
+
+/** 계산이 예외를 던져도 화면이 멈추지 않게 "계산할 수 없음" 결과로 바꾼다 */
+export function safeRun(j: RunJob, data: RunData): RunResult {
+  try {
+    return runAll(j.spec, j.inputs, j.options, data);
+  } catch (e) {
+    return { ok: false, issues: [{ field: "계산", reason: e instanceof Error ? e.message : "알 수 없는 오류" }] };
+  }
+}
+
 function getWorker(): Worker | null {
+  if (workerBroken) return null;
   if (worker) return worker;
   try {
     worker = new Worker(new URL("../lib/run.worker.ts", import.meta.url), { type: "module" });
@@ -74,24 +86,47 @@ export function useRun(jobs: (RunJob | null)[], data: RunData) {
       }
     };
     setPending(true);
+    const runHere = () => {
+      for (const { j, key } of todo) remember(key, safeRun(j, data));
+      done();
+    };
     const w = preferWorker ? getWorker() : null;
     if (w) {
-      const onMsg = (e: MessageEvent<{ id: number; results: { key: string; result: RunResult }[] }>) => {
-        if (e.data.id !== id) return;
+      let settled = false;
+      const cleanup = () => {
         w.removeEventListener("message", onMsg);
+        w.removeEventListener("error", onErr);
+        clearTimeout(timeout);
+      };
+      const onMsg = (e: MessageEvent<{ id: number; results: { key: string; result: RunResult }[] }>) => {
+        if (e.data.id !== id || settled) return;
+        settled = true;
+        cleanup();
         e.data.results.forEach((r) => remember(r.key, r.result));
         done();
       };
+      // 워커를 못 띄우거나 응답이 없으면 이 화면에서 계산한다
+      const onErr = () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        workerBroken = true;
+        worker?.terminate();
+        worker = null;
+        runHere();
+      };
+      const timeout = setTimeout(onErr, 15_000);
       w.addEventListener("message", onMsg);
+      w.addEventListener("error", onErr);
       const req: RunRequest = { id, jobs: todo.map(({ j, key }) => ({ key, ...j, data })) };
       w.postMessage(req);
-      return () => w.removeEventListener("message", onMsg);
+      return () => {
+        settled = true;
+        cleanup();
+      };
     }
     // 화면을 먼저 그리고 계산한다
-    const timer = setTimeout(() => {
-      for (const { j, key } of todo) remember(key, runAll(j.spec, j.inputs, j.options, data));
-      done();
-    }, 0);
+    const timer = setTimeout(runHere, 0);
     return () => clearTimeout(timer);
   }, [keysStr, data]);
 

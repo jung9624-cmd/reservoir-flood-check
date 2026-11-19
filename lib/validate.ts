@@ -2,6 +2,7 @@
 import type { PublicSpec, RunOptions, SpecOverrideField, UserInputs, ValidationIssue } from "./types";
 import { powerExponent } from "./storage";
 import { applySpecOverrides } from "./spec";
+import { minStableKHr } from "./runoff";
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
@@ -66,6 +67,7 @@ export function validateInputs(rawSpec: PublicSpec, inputs: UserInputs, options:
   if (options.tcKMethod === "direct") {
     if (!(inputs.timing.tcHr! > 0)) add("Tc", "0보다 커야 합니다");
     if (!(inputs.timing.kHr! > 0)) add("K", "0보다 커야 합니다");
+    else if (inputs.timing.kHr! < minStableKHr()) add("K", `${minStableKHr().toFixed(4)} hr(5분) 이상이어야 합니다 — 10분 간격 Clark 선형저수지 안정 조건 K ≥ Δt/2`);
   } else {
     if (!(inputs.timing.channelLengthKm! > 0)) add("유로연장", "0보다 커야 합니다");
     if (!(inputs.timing.farthestPointElM! > 0)) add("최원점 표고", "0보다 커야 합니다");

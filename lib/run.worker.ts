@@ -9,6 +9,12 @@ export interface RunRequest {
 
 self.onmessage = (e: MessageEvent<RunRequest>) => {
   const { id, jobs } = e.data;
-  const results = jobs.map((j) => ({ key: j.key, result: runAll(j.spec, j.inputs, j.options, j.data) }));
+  const results = jobs.map((j) => {
+    try {
+      return { key: j.key, result: runAll(j.spec, j.inputs, j.options, j.data) };
+    } catch (err) {
+      return { key: j.key, result: { ok: false as const, issues: [{ field: "계산", reason: err instanceof Error ? err.message : "알 수 없는 오류" }] } };
+    }
+  });
   (self as unknown as Worker).postMessage({ id, results });
 };
