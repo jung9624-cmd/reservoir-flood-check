@@ -1,4 +1,4 @@
-// 공통 타입. 단위는 이름 끝에 붙인다(_ha, _km2, _m3, _thm3 = 천m³, _el = EL.m, _hr, _min, _mm, _cms = m³/s).
+// 공통 타입. 숫자 필드는 이름 끝에 단위를 붙인다(Ha, Km2, M, M3, ThousandM3 = 천m³, ElM = EL.m, Hr, Min, Mm, Cms = m³/s, Pct, Yr).
 // 근거: CLAUDE.md 3~5절, docs/calc-rules.md
 
 /** 값 옆에 붙이는 출처 표시 (CLAUDE.md 4절: "자동(출처)" 또는 "입력") */
@@ -112,57 +112,156 @@ export interface HuffFile {
   sumPct: number;
 }
 
-/** 추가 방류시설 (선택) */
-export interface ExtraOutlet {
-  width_m: number;
-  crest_el: number; // 마루(바닥)표고
-  coefficient: number; // 유량계수
-  open: boolean;
+// ---------------------------------------------------------------------------
+// 계산 엔진 (lib/*.ts) 입력·출력
+// ---------------------------------------------------------------------------
+
+/** 제원에서 온 값 (공공데이터포털 15044339). 계산에 쓰는 것만 */
+export interface PublicSpec {
+  code: string;
+  name: string;
+  catchmentHa: number | null;
+  fullLevelElM: number | null; // 만수위
+  floodLevelElM: number | null; // 홍수위 (표시·비교용, 계산에는 쓰지 않음)
+  deadLevelElM: number | null; // 사수위
+  totalStorageThousandM3: number | null; // 총저수량
+  fullAreaHa: number | null; // 만수면적
+  damType: string | null; // 제체형식 ("필댐(…)"이면 × 1.2)
+  floodFreqYr: number | null; // 홍수빈도 (표시용)
+  asOf: string; // 제원 기준일
 }
 
-/** 사용자 입력값 6가지 (CLAUDE.md 4절) */
-export interface UserInputs {
-  spillwayWidth_m: number; // 1. 물넘이 폭
-  spillwayCrest_el: number; // 2. 물넘이 마루표고 (기본 = 만수위)
-  spillwayCoefficient: number; // 물넘이 유량계수 (기본 2.0)
-  extraOutlet: ExtraOutlet | null; // 3. 추가 방류시설
-  damCrest_el: number; // 4. 제정표고
-  cn: { amc: "II" | "III"; value: number }; // 5. CN
-  timing: // 6. Tc·K
-    | { mode: "direct"; tc_hr: number; k_hr: number }
-    | { mode: "seokyeong"; channelLength_km: number; farthestPointElevation_el: number };
+/** 방류시설 하나: O = C·L·max(0, h − 마루)^1.5 */
+export interface Outlet {
+  name: string;
+  widthM: number;
+  crestElM: number; // 마루(바닥)표고
+  coefficient: number; // 유량계수 C
+  open: boolean;
 }
 
 /** 설계 내용적표 한 행 */
 export interface StoragePoint {
-  level_el: number;
-  storage_m3: number;
+  levelElM: number;
+  storageM3: number;
 }
 
-/** 시계열 (등간격) */
+/** Tc·K 입력. 방식은 RunOptions.tcKMethod로 고른다 */
+export interface TimingInputs {
+  tcHr?: number; // 직접 입력
+  kHr?: number;
+  channelLengthKm?: number; // 서경대 공식 L
+  farthestPointElM?: number; // 서경대 공식 H (최원점 표고)
+}
+
+/** 사용자 입력값 6가지 (CLAUDE.md 4절) + 선택: 설계 내용적표 */
+export interface UserInputs {
+  spillway: {
+    widthM: number; // 1. 물넘이 폭
+    crestElM?: number; // 2. 물넘이 마루표고 (없으면 만수위)
+    coefficient?: number; // 유량계수 (없으면 2.0)
+  };
+  extraOutlets: Outlet[]; // 3. 추가 방류시설 (없으면 [])
+  damCrestElM: number; // 4. 제정표고
+  cn: { amc: "II" | "III"; value: number }; // 5. CN
+  timing: TimingInputs; // 6. Tc·K 또는 L·최원점 표고
+  storageTable?: StoragePoint[]; // 있으면 제원 근사 대신 사용 (CLAUDE.md 5.3)
+}
+
+export type TimeConvention = "actual" | "khas";
+
+/** 계산 옵션 */
+export interface RunOptions {
+  returnPeriodYr: number; // 기본 200
+  stationCode: string; // ASOS 3자리
+  firstYear: number; // 자료기간
+  lastYear: number;
+  timeConvention: TimeConvention; // 기본 actual, khas는 검증용
+  huff: "khas-q3"; // Huff 3분위 (K-HAS)
+  tcKMethod: "direct" | "seokyeong";
+  seokyeongAlpha?: 1.45 | 1.2 | 1.7; // 서경대 K 식 α (어느 값을 쓸지 확인 필요, calc-rules 4)
+  initialLevelElM?: number; // 없으면 만수위
+  /** 지속기간 10개 확률강우량을 직접 넣을 때(예: 보고서 값). 있으면 연최대 자료를 쓰지 않는다 */
+  rainfallOverrideMm?: number[];
+  /** 여유고 비교 전 최고수위 반올림 단위(m). 기본 0.01 (calc-rules 7-6, 확인 필요). 0이면 반올림 안 함 */
+  levelRoundingM?: number;
+}
+
+/** 값 하나와 그 출처 */
+export interface Sourced<T> {
+  value: T;
+  source: ValueSource;
+}
+
+/** 입력 검사 결과 한 줄 (예외 대신 목록으로 돌려준다) */
+export interface ValidationIssue {
+  field: string;
+  reason: string;
+}
+
+/** 등간격 시계열 */
 export interface TimeSeries {
-  dt_min: number;
+  dtMin: number;
   values: number[];
 }
 
 /** 지속기간 하나의 계산 결과 */
 export interface DurationResult {
-  duration_min: number;
-  rainfall_mm: number;
-  peakInflow_cms: number; // × 1.2 적용 후
-  peakOutflow_cms: number;
-  maxLevel_el: number;
+  durationMin: number;
+  rainfallMm: number; // T년 확률강우량
+  effectiveRainfallMm: number; // 총 유효우량
+  peakInflowRawCms: number; // Clark 첨두 (할증 전)
+  peakInflowCms: number; // 할증 후 (필댐 × 1.2)
+  peakOutflowCms: number;
+  initialOutflowCms: number;
+  maxLevelElM: number;
+  maxStorageM3: number;
+  timeOfMaxLevelMin: number;
+  inflowCms: TimeSeries; // 할증 후, 10분
+  outflowCms: TimeSeries; // 1분
+  levelElM: TimeSeries; // 1분
 }
 
 /** 여유고 판정 (화면에는 적합/부적합만 표시) */
 export interface Verdict {
-  criticalDuration_min: number;
-  maxLevel_el: number;
-  freeboard_m: number;
-  required_m: number; // 2.0
+  criticalDurationMin: number; // 최고수위가 가장 높은 지속기간
+  maxLevelElM: number; // 반올림 전
+  maxLevelRoundedElM: number; // 비교에 쓴 값
+  damCrestElM: number;
+  freeboardM: number; // 제정 − maxLevelRoundedElM
+  requiredM: number; // 2.0
   pass: boolean; // 적합
-  floodControlNotConsidered: boolean; // 유역 ≤ 5 km² 또는 Tc < 1 hr
+  /** 반올림 전 값으로 비교하면 판정이 바뀌는 경우 */
+  boundaryCase: boolean;
+  /** 유역 ≤ 5 km² 또는 Tc < 1 hr → "홍수조절 미고려 대상(제5편 8.2.1)" 안내 */
+  floodControlNotConsidered: boolean;
 }
+
+export interface RunWarning {
+  code: "areaReduction" | "floodControlNotConsidered" | "boundaryFreeboard" | "seokyeongDefinition" | "shortRecord";
+  message: string;
+}
+
+/** 확률강우량 표 */
+export interface ProbableRainfall {
+  durationMin: number[];
+  conversionFactor: number[]; // 환산계수 Y (override면 NaN)
+  rainfallMm: number[];
+  nYears: number; // 표본 수 (override면 0)
+  source: ValueSource;
+}
+
+export type RunResult =
+  | {
+      ok: true;
+      durations: DurationResult[];
+      verdict: Verdict;
+      rainfall: ProbableRainfall;
+      /** 계산에 쓴 값과 출처 (화면의 "자동(출처)"/"입력" 표시) */
+      used: Record<string, Sourced<number | string>>;
+      warnings: RunWarning[];
+    }
+  | { ok: false; issues: ValidationIssue[] };
 
 /** 지속기간 10개 (분) — CLAUDE.md 5-10 */
 export const DURATIONS_MIN = [60, 120, 180, 240, 360, 540, 720, 900, 1080, 1440] as const;

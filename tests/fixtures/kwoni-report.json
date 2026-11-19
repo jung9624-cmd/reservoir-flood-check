@@ -172,7 +172,41 @@
       }
     ],
     "initialOutflow_cms_approx": 15,
+    "initialOutflowNote": "만수위(EL.165.90)에서 시작, 비상수문 처음부터 열림",
+    "criticalDuration_min": 120,
+    "maxLevelCritical_el": 167.1,
     "freeboard_m": 2.0,
     "verdict": "적합"
+  },
+  "clarkPeakRaw_cms": {
+    "duration_min": [
+      60,
+      120,
+      180,
+      240,
+      360,
+      540,
+      720,
+      900,
+      1080,
+      1440
+    ],
+    "peak_cms": [
+      185.44,
+      180.14,
+      169.97,
+      154.12,
+      130.14,
+      108.49,
+      92.51,
+      80.9,
+      71.91,
+      60.2
+    ]
+  },
+  "specCurveCheck": {
+    "fromLevel_el": 163.0,
+    "tolerance_pct": 1.0,
+    "note": "EL.167.1 약 +0.1 %"
   }
 }

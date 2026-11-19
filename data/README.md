@@ -10,4 +10,4 @@
 | `rainfall/annual-max/<관측소>.json` | 지속기간 1~24시간 고정시간 연최대(mm). `actual`(기본)·`khas`(검증용) 두 시각 배치, 빈칸 수 | preprocess D | 생성 (92곳) |
 | `stations.json` | ASOS 관측소 위치 | preprocess D | **미생성** — `../Reference/01_원자료/ASOS_지점정보.csv` 필요 |
 | `huff/khas-q3.json` | K-HAS Huff 3분위, 1 % 간격 분포율과 누가값 | preprocess E | 생성 |
-| `validation/kwoni.json` | 권이 설계값 (검증용, CLAUDE.md 6절) | build_kwoni.py | 생성 |
+| (옮김) 권이 검증값 | `tests/fixtures/kwoni-report.json`으로 옮겼다 (테스트 전용) | build_kwoni.py | — |

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import kwoni from "@/data/validation/kwoni.json";
+import kwoni from "@/tests/fixtures/kwoni-report.json";
 import { DURATIONS_MIN } from "@/lib/types";
 
 // 권이 검증값이 CLAUDE.md 6절과 같은지 (계산 검증 아님, 자료 확인)
-describe("data/validation/kwoni.json", () => {
+describe("tests/fixtures/kwoni-report.json", () => {
   it("입력값 (CLAUDE.md 6.1)", () => {
     expect(kwoni.code).toBe("4713010226");
     expect(kwoni.inputs.spillway).toEqual({ width_m: 61.0, crest_el: 165.9, coefficient: 2.05 });

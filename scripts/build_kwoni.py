@@ -1,4 +1,4 @@
-"""권이 저수지 검증값 → data/validation/kwoni.json
+"""권이 저수지 보고서 검증값 → tests/fixtures/kwoni-report.json
 
 값은 CLAUDE.md 6절(권이저수지 재해복구 세부설계 2023, 제3장 수문분석·제4장 사업계획)에서 옮겼다.
 값을 바꾸려면 이 파일을 고치고 다시 실행한다:
@@ -8,7 +8,7 @@
 import json
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parent.parent / "data" / "validation" / "kwoni.json"
+OUT = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "kwoni-report.json"
 
 KWONI = {
     "code": "4713010226",
@@ -67,8 +67,22 @@ KWONI = {
             {"duration_min": 240, "inflowX1_2_cms": 184.94, "peakOutflow_cms": 182.26, "maxLevel_el": 167.02, "critical": False},
         ],
         "initialOutflow_cms_approx": 15,
+        "initialOutflowNote": "만수위(EL.165.90)에서 시작, 비상수문 처음부터 열림",
+        "criticalDuration_min": 120,
+        "maxLevelCritical_el": 167.10,
         "freeboard_m": 2.00,
         "verdict": "적합",
+    },
+    # 보고서 표 3.13: 할증(× 1.2) 전 Clark 첨두유량 (docs/calc-rules.md 8절)
+    "clarkPeakRaw_cms": {
+        "duration_min": [60, 120, 180, 240, 360, 540, 720, 900, 1080, 1440],
+        "peak_cms": [185.44, 180.14, 169.97, 154.12, 130.14, 108.49, 92.51, 80.90, 71.91, 60.20],
+    },
+    # 공공데이터만 쓸 때: 제원 근사 내용적 곡선 vs 설계표 (요청 기준, docs/data-audit.md 2.2)
+    "specCurveCheck": {
+        "fromLevel_el": 163.0,
+        "tolerance_pct": 1.0,
+        "note": "EL.167.1 약 +0.1 %",
     },
 }
 
